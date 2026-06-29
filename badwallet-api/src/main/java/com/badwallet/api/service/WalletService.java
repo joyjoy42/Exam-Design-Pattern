@@ -3,6 +3,7 @@ package com.badwallet.api.service;
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.entity.Wallet;
 import com.badwallet.api.exception.DuplicateWalletException;
+import com.badwallet.api.exception.WalletNotFoundException;
 import com.badwallet.api.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,5 +47,10 @@ public class WalletService {
 
     public Page<Wallet> list(Pageable pageable) {
         return walletRepository.findAll(pageable);
+    }
+
+    public Wallet getByPhoneNumber(String phoneNumber) {
+        return walletRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new WalletNotFoundException("Aucun portefeuille pour " + phoneNumber));
     }
 }
