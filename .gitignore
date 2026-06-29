@@ -35,6 +35,9 @@ out/
 .DS_Store
 Thumbs.db
 
+### Local tooling ###
+.claude/
+
 ### Logs / runtime data ###
 *.log
 *.db

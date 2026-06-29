@@ -72,6 +72,17 @@ public class FactureServiceProxyImpl implements FactureServiceProxy {
                 .body(PaymentResultDto.class));
     }
 
+    @Override
+    public void seedFactures(int numWallets, int monthsOfHistory) {
+        call(() -> paymentServiceRestClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/api/factures/seed")
+                        .queryParam("numWallets", numWallets)
+                        .queryParam("monthsOfHistory", monthsOfHistory)
+                        .build())
+                .retrieve()
+                .body(Map.class));
+    }
+
     private <T> T call(java.util.function.Supplier<T> request) {
         try {
             return request.get();

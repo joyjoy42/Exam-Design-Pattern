@@ -25,4 +25,7 @@ public interface FactureServiceProxy {
     PaymentResultDto payCurrentMonth(String walletCode, String serviceName, BigDecimal amount);
 
     PaymentResultDto payByReferences(List<String> references);
+
+    /** Asks payment-service to generate sample invoice history for wallet codes 1..numWallets. */
+    void seedFactures(int numWallets, int monthsOfHistory);
 }
