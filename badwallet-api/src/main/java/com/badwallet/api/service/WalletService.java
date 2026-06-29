@@ -5,12 +5,14 @@ import com.badwallet.api.dto.DepositRequest;
 import com.badwallet.api.dto.TransferRequest;
 import com.badwallet.api.dto.TransferResponse;
 import com.badwallet.api.dto.WithdrawRequest;
+import com.badwallet.api.entity.Transaction;
 import com.badwallet.api.entity.TransactionType;
 import com.badwallet.api.entity.Wallet;
 import com.badwallet.api.event.TransactionRecordedEvent;
 import com.badwallet.api.exception.DuplicateWalletException;
 import com.badwallet.api.exception.InsufficientBalanceException;
 import com.badwallet.api.exception.WalletNotFoundException;
+import com.badwallet.api.repository.TransactionRepository;
 import com.badwallet.api.repository.WalletRepository;
 import com.badwallet.api.service.fee.WithdrawalFeeStrategy;
 import com.badwallet.api.service.strategy.PaymentStrategyFactory;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Facade over wallet persistence and the transaction/payment machinery added by later
@@ -34,6 +37,7 @@ import java.time.Instant;
 public class WalletService {
 
     private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
     private final PaymentStrategyFactory paymentStrategyFactory;
     private final WithdrawalFeeStrategy withdrawalFeeStrategy;
     private final ApplicationEventPublisher eventPublisher;
@@ -127,6 +131,11 @@ public class WalletService {
                 sender.getPhoneNumber(), null, null, null));
 
         return TransferResponse.of(sender, receiver);
+    }
+
+    public List<Transaction> getTransactionHistory(String phoneNumber) {
+        getByPhoneNumber(phoneNumber); // 404s on unknown numbers before hitting the ledger
+        return transactionRepository.findByWalletPhoneNumberOrderByCreatedAtDesc(phoneNumber);
     }
 
     Wallet getById(Long walletId) {
