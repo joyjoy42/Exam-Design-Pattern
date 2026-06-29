@@ -4,6 +4,7 @@ import com.badwallet.api.dto.BalanceResponse;
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
 import com.badwallet.api.dto.WalletResponse;
+import com.badwallet.api.dto.WithdrawRequest;
 import com.badwallet.api.entity.Wallet;
 import com.badwallet.api.service.WalletService;
 import jakarta.validation.Valid;
@@ -50,5 +51,10 @@ public class WalletController {
     @PostMapping("/{id}/deposit")
     public WalletResponse deposit(@PathVariable Long id, @Valid @RequestBody DepositRequest request) {
         return WalletResponse.from(walletService.deposit(id, request));
+    }
+
+    @PostMapping("/withdraw")
+    public WalletResponse withdraw(@Valid @RequestBody WithdrawRequest request) {
+        return WalletResponse.from(walletService.withdraw(request));
     }
 }

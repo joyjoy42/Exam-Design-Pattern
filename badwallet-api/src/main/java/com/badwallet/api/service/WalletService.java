@@ -2,12 +2,15 @@ package com.badwallet.api.service;
 
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
+import com.badwallet.api.dto.WithdrawRequest;
 import com.badwallet.api.entity.TransactionType;
 import com.badwallet.api.entity.Wallet;
 import com.badwallet.api.event.TransactionRecordedEvent;
 import com.badwallet.api.exception.DuplicateWalletException;
+import com.badwallet.api.exception.InsufficientBalanceException;
 import com.badwallet.api.exception.WalletNotFoundException;
 import com.badwallet.api.repository.WalletRepository;
+import com.badwallet.api.service.fee.WithdrawalFeeStrategy;
 import com.badwallet.api.service.strategy.PaymentStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +33,7 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final PaymentStrategyFactory paymentStrategyFactory;
+    private final WithdrawalFeeStrategy withdrawalFeeStrategy;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -73,6 +77,25 @@ public class WalletService {
         eventPublisher.publishEvent(new TransactionRecordedEvent(
                 wallet, TransactionType.DEPOSIT, request.amount(), BigDecimal.ZERO,
                 null, request.paymentMethod().name(), null, null));
+        return wallet;
+    }
+
+    @Transactional
+    public Wallet withdraw(WithdrawRequest request) {
+        Wallet wallet = getByPhoneNumber(request.phoneNumber());
+        BigDecimal fee = withdrawalFeeStrategy.calculateFee(request.amount());
+        BigDecimal total = request.amount().add(fee);
+
+        if (wallet.getBalance().compareTo(total) < 0) {
+            throw new InsufficientBalanceException(
+                    "Solde insuffisant: " + wallet.getBalance() + " < " + total + " (montant + frais)");
+        }
+
+        wallet.debit(total);
+        walletRepository.save(wallet);
+
+        eventPublisher.publishEvent(new TransactionRecordedEvent(
+                wallet, TransactionType.WITHDRAW, request.amount(), fee, null, null, null, null));
         return wallet;
     }
 
