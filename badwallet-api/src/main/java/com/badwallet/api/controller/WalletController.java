@@ -1,5 +1,6 @@
 package com.badwallet.api.controller;
 
+import com.badwallet.api.dto.BalanceResponse;
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.WalletResponse;
 import com.badwallet.api.entity.Wallet;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,5 +34,15 @@ public class WalletController {
     @GetMapping
     public Page<WalletResponse> list(Pageable pageable) {
         return walletService.list(pageable).map(WalletResponse::from);
+    }
+
+    @GetMapping("/{phoneNumber}")
+    public WalletResponse getByPhoneNumber(@PathVariable String phoneNumber) {
+        return WalletResponse.from(walletService.getByPhoneNumber(phoneNumber));
+    }
+
+    @GetMapping("/{phoneNumber}/balance")
+    public BalanceResponse getBalance(@PathVariable String phoneNumber) {
+        return BalanceResponse.from(walletService.getByPhoneNumber(phoneNumber));
     }
 }
