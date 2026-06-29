@@ -2,6 +2,8 @@ package com.badwallet.api.service;
 
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
+import com.badwallet.api.dto.TransferRequest;
+import com.badwallet.api.dto.TransferResponse;
 import com.badwallet.api.dto.WithdrawRequest;
 import com.badwallet.api.entity.TransactionType;
 import com.badwallet.api.entity.Wallet;
@@ -97,6 +99,34 @@ public class WalletService {
         eventPublisher.publishEvent(new TransactionRecordedEvent(
                 wallet, TransactionType.WITHDRAW, request.amount(), fee, null, null, null, null));
         return wallet;
+    }
+
+    @Transactional
+    public TransferResponse transfer(TransferRequest request) {
+        if (request.senderPhone().equals(request.receiverPhone())) {
+            throw new IllegalArgumentException("Le portefeuille émetteur et destinataire doivent être différents");
+        }
+        Wallet sender = getByPhoneNumber(request.senderPhone());
+        Wallet receiver = getByPhoneNumber(request.receiverPhone());
+
+        if (sender.getBalance().compareTo(request.amount()) < 0) {
+            throw new InsufficientBalanceException(
+                    "Solde insuffisant: " + sender.getBalance() + " < " + request.amount());
+        }
+
+        sender.debit(request.amount());
+        receiver.credit(request.amount());
+        walletRepository.save(sender);
+        walletRepository.save(receiver);
+
+        eventPublisher.publishEvent(new TransactionRecordedEvent(
+                sender, TransactionType.TRANSFER_OUT, request.amount(), BigDecimal.ZERO,
+                receiver.getPhoneNumber(), null, null, null));
+        eventPublisher.publishEvent(new TransactionRecordedEvent(
+                receiver, TransactionType.TRANSFER_IN, request.amount(), BigDecimal.ZERO,
+                sender.getPhoneNumber(), null, null, null));
+
+        return TransferResponse.of(sender, receiver);
     }
 
     Wallet getById(Long walletId) {
