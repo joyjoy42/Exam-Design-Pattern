@@ -2,6 +2,8 @@ package com.badwallet.api.service;
 
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
+import com.badwallet.api.dto.PayFacturesRequest;
+import com.badwallet.api.dto.PayRequest;
 import com.badwallet.api.dto.TransferRequest;
 import com.badwallet.api.dto.TransferResponse;
 import com.badwallet.api.dto.WithdrawRequest;
@@ -15,6 +17,9 @@ import com.badwallet.api.exception.WalletNotFoundException;
 import com.badwallet.api.repository.TransactionRepository;
 import com.badwallet.api.repository.WalletRepository;
 import com.badwallet.api.service.fee.WithdrawalFeeStrategy;
+import com.badwallet.api.service.payment.CurrentMonthPaymentProcessor;
+import com.badwallet.api.service.payment.SpecificFacturesPaymentProcessor;
+import com.badwallet.api.service.proxy.FactureServiceProxy;
 import com.badwallet.api.service.strategy.PaymentStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +45,7 @@ public class WalletService {
     private final TransactionRepository transactionRepository;
     private final PaymentStrategyFactory paymentStrategyFactory;
     private final WithdrawalFeeStrategy withdrawalFeeStrategy;
+    private final FactureServiceProxy factureServiceProxy;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -131,6 +137,23 @@ public class WalletService {
                 sender.getPhoneNumber(), null, null, null));
 
         return TransferResponse.of(sender, receiver);
+    }
+
+    @Transactional
+    public Wallet pay(PayRequest request) {
+        Wallet wallet = getByPhoneNumber(request.phoneNumber());
+        return new CurrentMonthPaymentProcessor(
+                walletRepository, eventPublisher, factureServiceProxy, request.serviceName(), request.amount())
+                .pay(wallet);
+    }
+
+    @Transactional
+    public Wallet payFactures(PayFacturesRequest request) {
+        Wallet wallet = getByPhoneNumber(request.phoneNumber());
+        return new SpecificFacturesPaymentProcessor(
+                walletRepository, eventPublisher, factureServiceProxy,
+                request.serviceName(), request.factureReferences())
+                .pay(wallet);
     }
 
     public List<Transaction> getTransactionHistory(String phoneNumber) {

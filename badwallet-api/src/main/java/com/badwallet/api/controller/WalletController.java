@@ -3,6 +3,8 @@ package com.badwallet.api.controller;
 import com.badwallet.api.dto.BalanceResponse;
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
+import com.badwallet.api.dto.PayFacturesRequest;
+import com.badwallet.api.dto.PayRequest;
 import com.badwallet.api.dto.TransactionResponse;
 import com.badwallet.api.dto.TransferRequest;
 import com.badwallet.api.dto.TransferResponse;
@@ -71,5 +73,15 @@ public class WalletController {
     @GetMapping("/{phoneNumber}/transactions")
     public List<TransactionResponse> getTransactionHistory(@PathVariable String phoneNumber) {
         return walletService.getTransactionHistory(phoneNumber).stream().map(TransactionResponse::from).toList();
+    }
+
+    @PostMapping("/pay")
+    public WalletResponse pay(@Valid @RequestBody PayRequest request) {
+        return WalletResponse.from(walletService.pay(request));
+    }
+
+    @PostMapping("/pay-factures")
+    public WalletResponse payFactures(@Valid @RequestBody PayFacturesRequest request) {
+        return WalletResponse.from(walletService.payFactures(request));
     }
 }
