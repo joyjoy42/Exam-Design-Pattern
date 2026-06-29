@@ -5,6 +5,8 @@ import com.badwallet.api.entity.Wallet;
 import com.badwallet.api.exception.DuplicateWalletException;
 import com.badwallet.api.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,5 +42,9 @@ public class WalletService {
                 .build();
 
         return walletRepository.save(wallet);
+    }
+
+    public Page<Wallet> list(Pageable pageable) {
+        return walletRepository.findAll(pageable);
     }
 }
