@@ -38,10 +38,31 @@ sample requests (works with the VS Code "REST Client" extension).
 
 ## Git workflow
 
-This repository follows **Feature Branching / GitFlow**:
+This repository follows **Feature Branching** (GitFlow-style), as required by the exam brief:
 
-- `main` — production-ready, tagged releases only.
-- `develop` — integration branch; every finished feature is merged here.
-- `feature/*` — one branch per endpoint group, branched from and merged back into `develop`.
+- **`main`** — production-ready, stable. Every merge here is a tagged release (`v1.0.0`).
+- **`develop`** — integration branch. Every finished feature is merged here first, before
+  being prepared for production.
+- **`feature/*`** — one branch per endpoint (or logical group of endpoints). Created from
+  `develop`, merged back into `develop` with `--no-ff` once done.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md#git-workflow) for the full branch-to-endpoint mapping.
+### Branch ↔ endpoint mapping
+
+| Category | Endpoint(s) | Branch |
+|---|---|---|
+| Initialisation | `POST /api/wallets/seed` | `feature/wallet-seeder` |
+| Gestion | `POST /api/wallets` | `feature/wallet-creation` |
+| | `GET /api/wallets` (pagination) | `feature/wallet-listing` |
+| | `GET /api/wallets/{phone}` & `/balance` | `feature/wallet-consultation` |
+| Transactions | `POST /api/wallets/{id}/deposit` | `feature/transaction-deposit` |
+| | `POST /api/wallets/withdraw` | `feature/transaction-withdraw` |
+| | `POST /api/wallets/transfer` | `feature/transaction-transfer` |
+| Paiements | `POST /api/wallets/pay` & `/pay-factures` | `feature/payment-services` |
+| Historique | `GET /api/wallets/{phone}/transactions` | `feature/transaction-history` |
+| Proxy API | `GET /api/external/factures/...` (Tous les proxy) | `feature/proxy-factures` |
+
+Browse the [branches on GitHub](../../branches) to see each one merged into `develop`,
+and the [commit history](../../commits/develop) for how each endpoint group was built.
+See [ARCHITECTURE.md](ARCHITECTURE.md#3-git-workflow) for why the actual build order
+deviates slightly from this table (dependency order between branches) and for the full
+list of design patterns applied.
