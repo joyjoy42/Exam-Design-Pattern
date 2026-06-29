@@ -11,6 +11,7 @@ import com.badwallet.api.dto.TransferResponse;
 import com.badwallet.api.dto.WalletResponse;
 import com.badwallet.api.dto.WithdrawRequest;
 import com.badwallet.api.entity.Wallet;
+import com.badwallet.api.service.WalletSeederService;
 import com.badwallet.api.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -33,6 +36,18 @@ import java.util.List;
 public class WalletController {
 
     private final WalletService walletService;
+    private final WalletSeederService walletSeederService;
+
+    @PostMapping("/seed")
+    public ResponseEntity<Map<String, Object>> seed(
+            @RequestParam(defaultValue = "10") int numWallets,
+            @RequestParam(defaultValue = "100") int eventsPerWallet) {
+        walletSeederService.seed(numWallets, eventsPerWallet);
+        return ResponseEntity.accepted().body(Map.of(
+                "status", "STARTED",
+                "numWallets", numWallets,
+                "eventsPerWallet", eventsPerWallet));
+    }
 
     @PostMapping
     public ResponseEntity<WalletResponse> create(@Valid @RequestBody CreateWalletRequest request) {
