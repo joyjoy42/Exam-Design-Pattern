@@ -3,6 +3,7 @@ package com.badwallet.api.controller;
 import com.badwallet.api.dto.BalanceResponse;
 import com.badwallet.api.dto.CreateWalletRequest;
 import com.badwallet.api.dto.DepositRequest;
+import com.badwallet.api.dto.TransactionResponse;
 import com.badwallet.api.dto.TransferRequest;
 import com.badwallet.api.dto.TransferResponse;
 import com.badwallet.api.dto.WalletResponse;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -63,5 +66,10 @@ public class WalletController {
     @PostMapping("/transfer")
     public TransferResponse transfer(@Valid @RequestBody TransferRequest request) {
         return walletService.transfer(request);
+    }
+
+    @GetMapping("/{phoneNumber}/transactions")
+    public List<TransactionResponse> getTransactionHistory(@PathVariable String phoneNumber) {
+        return walletService.getTransactionHistory(phoneNumber).stream().map(TransactionResponse::from).toList();
     }
 }
